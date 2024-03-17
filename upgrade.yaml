@@ -1,5 +1,5 @@
 ---
-   - name: upgrade all packages, excluding kernel
+- name: upgrade all packages, excluding kernel
     yum:
       name: '*'
       state: latest
