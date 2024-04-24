@@ -1,0 +1,136 @@
+Prerequisites
+
+Before getting started, ensure you have the following prerequisites:
+
+Basic understanding of Kubernetes concepts
+Familiarity with Terraform syntax and usage
+Access to a cloud provider account (e.g., AWS, Azure, Google Cloud)
+Step 1: Set Up Terraform Environment
+
+Install Terraform: Download and install Terraform from the official website or use a package manager like Homebrew.
+Configure Cloud Provider Credentials: Set up credentials for your chosen cloud provider to authenticate Terraform.
+Step 2: Define Infrastructure as Code
+
+Create Terraform Configuration: Start by creating a new directory for your Terraform configuration files.
+
+$ mkdir terraform-k8s && cd terraform-k8s
+Define Provider: Specify the cloud provider you’ll be using in your Terraform configuration. Here are examples for AWS, Azure, and Google Cloud:
+
+AWS Example
+
+# main.tf
+
+provider "aws" {
+  region = "us-west-2"
+}
+
+
+# eks.tf
+
+resource "aws_eks_cluster" "example" {
+  name     = "example-cluster"
+  role_arn = aws_iam_role.example.arn
+  version  = "1.21"
+}
+
+resource "aws_iam_role" "example" {
+  name = "example-eks-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = {
+        Service = "eks.amazonaws.com"
+      }
+      Action    = "sts:AssumeRole"
+    }]
+  })
+}
+Azure Example
+
+# main.tf
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "East US"
+}
+
+resource "azurerm_kubernetes_cluster" "example" {
+  name                = "example-cluster"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  dns_prefix          = "example-cluster"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 3
+    vm_size    = "Standard_D2s_v3"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+Google Cloud Example
+
+# main.tf
+
+provider "google" {
+  credentials = file("path/to/credentials.json")
+  project     = "your-project-id"
+  region      = "us-central1"
+}
+
+resource "google_container_cluster" "example" {
+  name     = "example-cluster"
+  location = "us-central1"
+
+  initial_node_count = 3
+
+  node_config {
+    machine_type = "e2-medium"
+    oauth_scopes = [
+      "https://www.googleapis.com/auth/compute",
+      "https://www.googleapis.com/auth/devstorage.read_only",
+      "https://www.googleapis.com/auth/logging.write",
+      "https://www.googleapis.com/auth/monitoring"
+    ]
+  }
+}
+Step 3: Provision Kubernetes Cluster
+
+Initialize Terraform: Navigate to your Terraform configuration directory and run terraform init to initialize Terraform.
+
+$ terraform init
+Plan Infrastructure Changes: Run terraform plan to preview the changes Terraform will make to your infrastructure.
+
+$ terraform plan
+Apply Changes: Execute terraform apply to provision the Kubernetes cluster based on your Terraform configuration.
+
+$ terraform apply
+Step 4: Configure Kubernetes Cluster
+
+Retrieve Cluster Configuration: After provisioning, Terraform will output information about the newly created Kubernetes cluster, including the cluster endpoint and credentials.
+
+$ terraform output kubeconfig > ~/.kube/config
+Configure kubectl: Use the provided cluster credentials to configure kubectl to interact with your Kubernetes cluster.
+
+$ kubectl get nodes
+Step 5: Deploy Applications
+
+Deploy Applications: Use kubectl or Kubernetes manifests to deploy containerized applications to your newly created Kubernetes cluster.
+
+$ kubectl apply -f deployment.yaml
+Monitor and Manage: Monitor the health and performance of your applications using Kubernetes dashboard or command-line tools.
+
+$ kubectl get pods
+Step 6: Clean Up Resources
+
+Destroy Infrastructure: When you’re finished with the Kubernetes cluster, run terraform destroy to tear down the resources provisioned by Terraform.
+
+$ terraform destroy
+Verify Deletion: Confirm that all resources have been successfully deleted from your cloud provider’s console.
